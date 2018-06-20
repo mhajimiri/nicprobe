@@ -1,5 +1,6 @@
 package com.mohaymen.registry.demoregistry.config;
 
+import com.mohaymen.registry.demoregistry.backend.elk.CalcResponseTime;
 import com.mohaymen.registry.demoregistry.backend.network.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -77,6 +78,11 @@ public class AppConfig {
     @Bean
     public ErrorOutputStream errorOutputStream() {
         return new ErrorOutputStream();
+    }
+
+    @Bean
+    public CalcResponseTime calcResponseTime(){
+        return new CalcResponseTime();
     }
 
     @Bean

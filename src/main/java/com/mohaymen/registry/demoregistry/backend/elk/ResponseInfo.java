@@ -1,6 +1,5 @@
 package com.mohaymen.registry.demoregistry.backend.elk;
 
-
 import lombok.Getter;
 import lombok.Setter;
 
@@ -10,18 +9,19 @@ import javax.persistence.*;
 @Setter
 
 @Entity
-@Table(name = "Diameter")
-public class DiameterModel {
+@Table(name = "Response_Info")
+public class ResponseInfo {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE,generator = "id_sequence")
     @SequenceGenerator(name = "id_sequence",sequenceName = "ID_SEQ",initialValue = 1)
     private Long id;
-    @Column(name="hopByhopId")
-    private String hopByhopId;
-    @Column(name = "sessionId")
-    private String sessionId;
-    @Column(name = "time")
-    private String time;
-    @Column(name = "endToEndId")
-    private String endToEndId;
+
+    @Column(name = "uniqId")
+    private String uniqId;
+
+    @Column(name = "type")
+    private int type;
+
+    @Column(name = "responseTime")
+    private long responseTime;
 }

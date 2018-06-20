@@ -1,6 +1,7 @@
 package com.mohaymen.registry.demoregistry.backend.network;
 
 
+import com.mohaymen.registry.demoregistry.backend.elk.CalcResponseTime;
 import com.mohaymen.registry.demoregistry.backend.elk.DiameterRepository;
 import com.mohaymen.registry.demoregistry.backend.elk.GsmMapRepository;
 import org.apache.commons.io.FileUtils;
@@ -20,6 +21,8 @@ public class ScheduledTasks {
     private GsmMapRepository gsmMapRepository;
     @Autowired
     private DiameterRepository diameterRepository;
+    @Autowired
+    private CalcResponseTime calcResponseTime;
 
     private static final Logger logger = LogManager.getLogger(ScheduledTasks.class);
 
@@ -36,5 +39,10 @@ public class ScheduledTasks {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    @Scheduled(fixedRate = 3)
+    public void reportResponseTime(){
+        calcResponseTime.GsmMapCalculate();
     }
 }

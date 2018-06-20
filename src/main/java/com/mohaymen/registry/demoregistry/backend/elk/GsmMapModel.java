@@ -28,4 +28,6 @@ public class GsmMapModel implements Serializable{
     private String calledDigit;
     @Column(name = "callingDigit")
     private String callingDigit;
+    @Column(name = "status", columnDefinition="tinyint(1) default 0" )
+    private int status;
 }

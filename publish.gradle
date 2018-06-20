@@ -1,0 +1,65 @@
+apply plugin: 'maven'
+
+repositories {
+    // The above address is temporarily down, use the .m2 local repository:
+//    mavenLocal()
+}
+
+configurations {
+
+}
+
+dependencies {
+    compile fileTree(dir: 'libs', include: ['*.jar'])
+}
+
+task javadocs(type: Javadoc) {
+    failOnError false
+    source = fileTree(dir: 'src/main/java')
+}
+
+task javadocsJar(type: Jar, dependsOn: javadocs) {
+    classifier = 'javadoc'
+    from javadocs.destinationDir
+}
+
+task sourcesJar(type: Jar) {
+    classifier = 'sources'
+    from fileTree(dir: 'src/main/java')
+}
+
+jar.doFirst {
+    baseName = "${ARTIFACT_NAME}-${VERSION_NAME}"
+    manifest {
+        attributes('Implementation-Title': "${ARTIFACT_PACKAGE}.${ARTIFACT_NAME}:${ARTIFACT_NAME}",
+                'Implementation-Version': VERSION_NAME,
+                'Built-JDK': System.getProperty('java.version'),
+                'Build-Time': new Date().format("yyyy-MM-dd'T'HH:mm:ssZ"))
+    }
+}
+
+javadocsJar.doFirst {
+    baseName = "${ARTIFACT_NAME}-${VERSION_NAME}"
+    manifest {
+        attributes('Implementation-Title': "${ARTIFACT_PACKAGE}.${ARTIFACT_NAME}:${ARTIFACT_NAME}",
+                'Implementation-Version': VERSION_NAME,
+                'Built-JDK': System.getProperty('java.version'),
+                'Build-Time': new Date().format("yyyy-MM-dd'T'HH:mm:ssZ"))
+    }
+}
+
+sourcesJar.doFirst {
+    baseName = "${ARTIFACT_NAME}-${VERSION_NAME}"
+    manifest {
+        attributes('Implementation-Title': "${ARTIFACT_PACKAGE}.${ARTIFACT_NAME}:${ARTIFACT_NAME}",
+                'Implementation-Version': VERSION_NAME,
+                'Built-JDK': System.getProperty('java.version'),
+                'Build-Time': new Date().format("yyyy-MM-dd'T'HH:mm:ssZ"))
+    }
+}
+
+artifacts {
+    archives javadocsJar
+    archives sourcesJar
+}
+

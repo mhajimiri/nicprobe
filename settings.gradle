@@ -1,0 +1,4 @@
+rootProject.name = 'com.mohaymen.registry.demoregistry'
+include ':app'
+
+

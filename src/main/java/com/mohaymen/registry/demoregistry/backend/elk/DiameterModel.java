@@ -3,27 +3,28 @@ package com.mohaymen.registry.demoregistry.backend.elk;
 
 import lombok.Getter;
 import lombok.Setter;
+import org.springframework.data.redis.core.RedisHash;
 
 import javax.persistence.*;
+import java.io.Serializable;
 
 @Getter
 @Setter
 
-@Entity
-@Table(name = "Diameter")
-public class DiameterModel {
-    @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE,generator = "id_sequence")
-    @SequenceGenerator(name = "id_sequence",sequenceName = "ID_SEQ",initialValue = 1)
-    private Long id;
-    @Column(name="hopByhopId")
-    private String hopByhopId;
-    @Column(name = "sessionId")
-    private String sessionId;
-    @Column(name = "time")
+@RedisHash("Diameter")
+public class DiameterModel implements Serializable {
+
+    private String id;
+
     private String time;
-    @Column(name = "endToEndId")
+
+    private String hopByhopId;
+
     private String endToEndId;
-    @Column(name = "status",columnDefinition="tinyint(1) default 0")
-    private int status;
+
+    private String srcIp;
+
+    private String desIp;
+
+    private String epochTime;
 }

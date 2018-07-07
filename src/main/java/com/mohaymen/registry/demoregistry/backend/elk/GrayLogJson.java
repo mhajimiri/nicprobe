@@ -5,8 +5,7 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class MyPojo
-{
+public class GrayLogJson {
     private String level;
 
     private String host;
@@ -16,10 +15,4 @@ public class MyPojo
     private String short_message;
 
     private String version;
-
-    @Override
-    public String toString()
-    {
-        return "ClassPojo [level = "+level+", host = "+host+", _some_info = "+_some_info+", short_message = "+short_message+", version = "+version+"]";
-    }
 }

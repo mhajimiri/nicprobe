@@ -17,7 +17,6 @@ import java.io.File;
 import java.io.IOException;
 
 @Component
-@Scope("prototype")
 public class MyGsmMapHandler implements Runnable {
     @Autowired
     private ThreadPoolTaskExecutor taskExecutor;
@@ -25,7 +24,6 @@ public class MyGsmMapHandler implements Runnable {
     private GsmMapOutputStream gsmMapOutputStream;
     @Autowired
     private ErrorOutputStream errorOutputStream;
-    private Runnable r0;
 
     private static final Logger logger = LogManager.getLogger(MyGsmMapHandler.class);
 
@@ -46,10 +44,12 @@ public class MyGsmMapHandler implements Runnable {
                         tsharkGsmMap.addArgument(file.getAbsolutePath());
                         try {
                             gsmMapShell.execute(tsharkGsmMap);
-                            if(!file.getName().contains("checked")){
-                                FileUtils.moveFile(file,new File("/home/zamani/dump/checked/"+
-                                        file.getName().replace("pcap","checked")));
-                            }
+//                            if(!file.getName().contains("checked")){
+//                                if(file.exists()) {
+//                                    FileUtils.moveFile(file, new File("/home/zamani/dump/checked/" +
+//                                            file.getName().replace("pcap", "checked")));
+//                                }
+//                            }
 
                         } catch (IOException e) {
                             e.printStackTrace();

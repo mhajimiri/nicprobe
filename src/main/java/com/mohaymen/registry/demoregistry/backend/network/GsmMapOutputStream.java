@@ -3,8 +3,6 @@ package com.mohaymen.registry.demoregistry.backend.network;
 import com.google.gson.Gson;
 import com.mohaymen.registry.demoregistry.backend.elk.*;
 import org.apache.commons.exec.LogOutputStream;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.text.StrTokenizer;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,88 +17,68 @@ public class GsmMapOutputStream extends LogOutputStream {
     @Autowired
     private GsmMapRepository gsmMapRepository;
 
-    private Gson gson;
+    @Autowired
+    private CalcResponseTime calcResponseTime;
+
+    @Autowired
+    private Gson objectMapper;
 
     private static final Logger logger = LogManager.getLogger(GsmMapOutputStream.class);
 
     @Override
     protected void processLine(String line, int level) {
-
-        if (StringUtils.isNotBlank(line) && StringUtils.isNotEmpty(line) &&
-                StringUtils.contains(line, ",") && StringUtils.contains(line, "#") &&
-                StringUtils.contains(line, ":")) {
-            convertToJsonAndSend(line);
+        if (line.startsWith("{\"timestamp\"")) {
+            save(convert(line.trim()));
         }
     }
 
-
-    public void convertToJsonAndSend(String line) {
+    public ArrayList<GsmMapModel> convert(String json) {
+        ArrayList<GsmMapModel> list=null;
+        GsmMapPojo gsmMapPojo=null;
         try {
-            send(convert(line));
-        } catch (Exception e) {
-            logger.error("Oo0PSs!", e);
+            gsmMapPojo = objectMapper.fromJson(json, GsmMapPojo.class);
+        }catch (Exception ex){
+            //nothing to do ...
         }
-    }
-
-    public ArrayList<GsmMapModel> convert(String line) {
-        ///
-        ArrayList<GsmMapModel> list = new ArrayList<>();
-        StrTokenizer tokens = new StrTokenizer(line, "#");
-        List<String> parts = tokens.getTokenList();
-        for (String part : parts) {
-            if (parts.indexOf(part) == 0) {
-                StrTokenizer invokeIDs = new StrTokenizer(part, ",");
-                List<String> invokeIDParts = invokeIDs.getTokenList();
-                for (String invokeId : invokeIDParts) {
-                    GsmMapModel gsmMapModel = new GsmMapModel();
-                    gsmMapModel.setInvokeId(invokeId);
-                    list.add(gsmMapModel);
+            ///
+        try {
+            if(gsmMapPojo!=null) {
+                list = new ArrayList<>();
+                for (String invokeId : gsmMapPojo.getLayers().getTcap_invokeID()) {
+                    GsmMapModel gsmMap = new GsmMapModel();
+                    gsmMap.setTime(gsmMapPojo.getTimestamp());
+                    gsmMap.setId(invokeId);
+                    list.add(gsmMap);
                 }
 
-                if (parts.indexOf(part) == 1) {
-                    StrTokenizer tIDs = new StrTokenizer(part, ",");
-                    List<String> tIDParts = tIDs.getTokenList();
-                    for (int i = 0; i < list.size(); i++) {
-                        list.get(i).setTid(tIDParts.get(i));
-                    }
+                for (int i = 0; i < list.size(); i++) {
+                    list.get(i).setId(gsmMapPojo.getLayers().getTcap_invokeID().get(i) +
+                            "#" + gsmMapPojo.getLayers().getTcap_tid().get(i));
+                    list.get(i).setEpochTime(gsmMapPojo.getLayers().getFrame_time_epoch().get(0));
+                    list.get(i).setSrcIp(gsmMapPojo.getLayers().getIp_src().get(0));
+                    list.get(i).setDesIp(gsmMapPojo.getLayers().getIp_dst().get(0));
                 }
-
-                if (parts.indexOf(part) == 2) {
-                    StrTokenizer calleds = new StrTokenizer(part, ",");
-                    List<String> calledParts = calleds.getTokenList();
-                    for (int i = 0; i < list.size(); i++) {
-                        list.get(i).setCalledDigit(calledParts.get(i));
-                    }
-                }
-
-                if (parts.indexOf(part) == 3) {
-                    StrTokenizer callings = new StrTokenizer(part, ",");
-                    List<String> callingParts = callings.getTokenList();
-                    for (int i = 0; i < list.size(); i++) {
-                        list.get(i).setCallingDigit(callingParts.get(i));
-                    }
-                }
-
-                if (parts.indexOf(part) == 4) {
-                    for (int i = 0; i < list.size(); i++) {
-                        list.get(i).setTime(part);
-                    }
-                }
-
             }
-
+        }catch (Exception e){
+            e.printStackTrace();
         }
         return list;
     }
 
 
-    public void send(ArrayList<GsmMapModel> requests) {
+    public void save(ArrayList<GsmMapModel> requests) {
         try {
-            if (requests != null) {
+            if (requests != null && requests.size() != 0) {
                 for (GsmMapModel request : requests) {
-                    gsmMapRepository.save(request);
+                    if(!gsmMapRepository.findById(request.getId()).isPresent()){
+                        gsmMapRepository.save(request);
+                    }else {
+                        List<GsmMapModel> reqAndResp=new ArrayList<>(2);
+                        reqAndResp.add(request);
+                        reqAndResp.add(gsmMapRepository.findById(request.getId()).get());
+                        calcResponseTime.GsmMapCalculate(reqAndResp);
+                    }
                 }
-
             }
         } catch (Exception e) {
             e.printStackTrace();

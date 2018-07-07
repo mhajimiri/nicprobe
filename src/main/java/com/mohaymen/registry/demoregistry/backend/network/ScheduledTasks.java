@@ -4,6 +4,7 @@ package com.mohaymen.registry.demoregistry.backend.network;
 import com.mohaymen.registry.demoregistry.backend.elk.CalcResponseTime;
 import com.mohaymen.registry.demoregistry.backend.elk.DiameterRepository;
 import com.mohaymen.registry.demoregistry.backend.elk.GsmMapRepository;
+import com.mohaymen.registry.demoregistry.backend.elk.ResponseInfoRepository;
 import org.apache.commons.io.FileUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -21,8 +22,6 @@ public class ScheduledTasks {
     private GsmMapRepository gsmMapRepository;
     @Autowired
     private DiameterRepository diameterRepository;
-    @Autowired
-    private CalcResponseTime calcResponseTime;
 
     private static final Logger logger = LogManager.getLogger(ScheduledTasks.class);
 
@@ -32,17 +31,12 @@ public class ScheduledTasks {
         try {
             long g=gsmMapRepository.count();
             long d=diameterRepository.count();
-            long count =  g+ d;
-            String data = g + "," + d + ": " + count + "-->" +
+
+            String data = ++g + "," + d + ": "+ "-->" +
                     new Date() + "\n";
             FileUtils.writeStringToFile(file, data, true);
         } catch (IOException e) {
             e.printStackTrace();
         }
-    }
-
-    @Scheduled(fixedRate = 3)
-    public void reportResponseTime(){
-        calcResponseTime.GsmMapCalculate();
     }
 }

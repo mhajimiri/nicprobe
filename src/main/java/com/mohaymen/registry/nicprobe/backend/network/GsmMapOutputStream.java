@@ -1,10 +1,17 @@
-package com.mohaymen.registry.demoregistry.backend.network;
+package com.mohaymen.registry.nicprobe.backend.network;
 
 import com.google.gson.Gson;
-import com.mohaymen.registry.demoregistry.backend.elk.*;
+import com.mohaymen.registry.nicprobe.backend.dao.GsmMapRepository;
+import com.mohaymen.registry.nicprobe.backend.bl.*;
+import com.mohaymen.registry.nicprobe.backend.model.GsmMapModel;
+import com.mohaymen.registry.nicprobe.backend.model.GsmMapPojo;
+import com.mohaymen.registry.nicprobe.backend.model.ResponseInfoModel;
 import org.apache.commons.exec.LogOutputStream;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.graylog2.gelfclient.GelfMessage;
+import org.graylog2.gelfclient.GelfMessageBuilder;
+import org.graylog2.gelfclient.transport.GelfTransport;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -19,9 +26,12 @@ public class GsmMapOutputStream extends LogOutputStream {
 
     @Autowired
     private CalcResponseTime calcResponseTime;
-
     @Autowired
     private Gson objectMapper;
+    @Autowired
+    private GelfMessageBuilder gelfMessageBuilder;
+    @Autowired
+    private GelfTransport transport;
 
     private static final Logger logger = LogManager.getLogger(GsmMapOutputStream.class);
 
@@ -54,9 +64,6 @@ public class GsmMapOutputStream extends LogOutputStream {
                 for (int i = 0; i < list.size(); i++) {
                     list.get(i).setId(gsmMapPojo.getLayers().getTcap_invokeID().get(i) +
                             "#" + gsmMapPojo.getLayers().getTcap_tid().get(i));
-                    list.get(i).setEpochTime(gsmMapPojo.getLayers().getFrame_time_epoch().get(0));
-                    list.get(i).setSrcIp(gsmMapPojo.getLayers().getIp_src().get(0));
-                    list.get(i).setDesIp(gsmMapPojo.getLayers().getIp_dst().get(0));
                 }
             }
         }catch (Exception e){
@@ -65,22 +72,45 @@ public class GsmMapOutputStream extends LogOutputStream {
         return list;
     }
 
-
+        //
     public void save(ArrayList<GsmMapModel> requests) {
+        GsmMapModel temp;
         try {
             if (requests != null && requests.size() != 0) {
                 for (GsmMapModel request : requests) {
-                    if(!gsmMapRepository.findById(request.getId()).isPresent()){
-                        gsmMapRepository.save(request);
-                    }else {
+                    try{
+                        temp=gsmMapRepository.findById(request.getId()).get();
+                    }catch (Exception e){
+                        temp=null;
+                    }
+
+                    if(temp!=null){
                         List<GsmMapModel> reqAndResp=new ArrayList<>(2);
+                        reqAndResp.add(temp);
                         reqAndResp.add(request);
-                        reqAndResp.add(gsmMapRepository.findById(request.getId()).get());
                         calcResponseTime.GsmMapCalculate(reqAndResp);
+//                        ResponseInfoModel responseInfoModel=new ResponseInfoModel();
+//                        responseInfoModel.setId(request.getId());
+//                        responseInfoModel.setType(1);
+//                        send(responseInfoModel);
+                    }else {
+                        gsmMapRepository.save(request);
                     }
                 }
             }
         } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void send(ResponseInfoModel responseInfoModel) {
+
+        GelfMessage message = gelfMessageBuilder.message(objectMapper.toJson(responseInfoModel))
+                .build();
+
+        try {
+            transport.send(message);
+        } catch (InterruptedException e) {
             e.printStackTrace();
         }
     }

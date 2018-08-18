@@ -1,4 +1,4 @@
-package com.mohaymen.registry.demoregistry.backend.network;
+package com.mohaymen.registry.nicprobe.backend.network;
 
 
 import org.apache.commons.exec.LogOutputStream;

@@ -1,7 +1,7 @@
-package com.mohaymen.registry.demoregistry;
+package com.mohaymen.registry.nicprobe;
 
-import com.mohaymen.registry.demoregistry.backend.network.MyDiameterHandler;
-import com.mohaymen.registry.demoregistry.backend.network.MyGsmMapHandler;
+import com.mohaymen.registry.nicprobe.backend.network.MyDiameterHandler;
+import com.mohaymen.registry.nicprobe.backend.network.MyGsmMapHandler;
 import org.apache.commons.exec.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -35,13 +35,11 @@ public class DemoRegistryApplication {
             Thread thread = new Thread() {
                 public void run() {
                     Executor dumpcapShell = new DefaultExecutor();
-//                    ExecuteWatchdog watchdog=new ExecuteWatchdog(ExecuteWatchdog.INFINITE_TIMEOUT);
                     CommandLine dumpcap = new CommandLine("./script-dumpcap.sh");
-                    dumpcap.addArgument("4096");
-                    dumpcap.addArgument("ens256");
-                    dumpcap.addArgument("400");
+                    dumpcap.addArgument("ens224");
+                    dumpcap.addArgument("32768");
+                    dumpcap.addArgument("10");
                     try {
-//                        dumpcapShell.setWatchdog(watchdog);
                         dumpcapShell.execute(dumpcap);
                     } catch (IOException e) {
                         e.printStackTrace();

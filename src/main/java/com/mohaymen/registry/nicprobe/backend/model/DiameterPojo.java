@@ -1,4 +1,4 @@
-package com.mohaymen.registry.demoregistry.backend.elk;
+package com.mohaymen.registry.nicprobe.backend.model;
 
 
 
@@ -10,7 +10,6 @@ import java.io.Serializable;
 @Getter
 @Setter
 public class DiameterPojo implements Serializable{
-
     private String timestamp;
     private DiameterLayers layers;
 }

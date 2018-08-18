@@ -1,10 +1,17 @@
-package com.mohaymen.registry.demoregistry.backend.network;
+package com.mohaymen.registry.nicprobe.backend.network;
 
 import com.google.gson.Gson;
-import com.mohaymen.registry.demoregistry.backend.elk.*;
+import com.mohaymen.registry.nicprobe.backend.dao.DiameterRepository;
+import com.mohaymen.registry.nicprobe.backend.bl.*;
+import com.mohaymen.registry.nicprobe.backend.model.DiameterModel;
+import com.mohaymen.registry.nicprobe.backend.model.DiameterPojo;
+import com.mohaymen.registry.nicprobe.backend.model.ResponseInfoModel;
 import org.apache.commons.exec.LogOutputStream;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.graylog2.gelfclient.GelfMessage;
+import org.graylog2.gelfclient.GelfMessageBuilder;
+import org.graylog2.gelfclient.transport.GelfTransport;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -18,7 +25,10 @@ public class DiameterOutputStream extends LogOutputStream {
     private DiameterRepository diameterRepository;
     @Autowired
     private CalcResponseTime calcResponseTime;
-
+    @Autowired
+    private GelfTransport transport;
+    @Autowired
+    private GelfMessageBuilder gelfMessageBuilder;
     @Autowired
     private Gson objectMapper;
 
@@ -53,9 +63,6 @@ public class DiameterOutputStream extends LogOutputStream {
 
                 for (int i = 0; i < list.size(); i++) {
                     list.get(i).setId(diameterPojo.getLayers().getDiameter_Session_Id().get(i));
-                    list.get(i).setEpochTime(diameterPojo.getLayers().getFrame_time_epoch().get(0));
-                    list.get(i).setSrcIp(diameterPojo.getLayers().getIp_src().get(0));
-                    list.get(i).setDesIp(diameterPojo.getLayers().getIp_dst().get(0));
                 }
             }
 
@@ -68,21 +75,42 @@ public class DiameterOutputStream extends LogOutputStream {
 
 
     public void save(ArrayList<DiameterModel> requests) {
+        DiameterModel temp;
         try {
             if (requests != null && requests.size() != 0) {
                 for (DiameterModel request : requests) {
-                    if (!diameterRepository.findById(request.getId()).isPresent()) {
-                        diameterRepository.save(request);
-                    } else {
-                        List<DiameterModel> reqAndResp = new ArrayList<>(2);
-                        reqAndResp.add(request);
-                        reqAndResp.add(diameterRepository.findById(request.getId()).get());
-                        calcResponseTime.diameterCalculate(reqAndResp);
+                    try {
+                        temp=diameterRepository.findById(request.getId()).get();
+                    }catch (Exception e){
+                        temp=null;
                     }
 
+                    if(temp!=null){
+                        List<DiameterModel> reqAndResp=new ArrayList<>(2);
+                        reqAndResp.add(temp);
+                        reqAndResp.add(request);
+                        calcResponseTime.diameterCalculate(reqAndResp);
+//                        ResponseInfoModel responseInfoModel=new ResponseInfoModel();
+//                        responseInfoModel.setType(2);
+//                        send(responseInfoModel);
+                    }else {
+                        diameterRepository.save(request);
+                    }
                 }
             }
         } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void send(ResponseInfoModel responseInfoModel) {
+
+        GelfMessage message = gelfMessageBuilder.message(objectMapper.toJson(responseInfoModel))
+                .build();
+
+        try {
+            transport.send(message);
+        } catch (InterruptedException e) {
             e.printStackTrace();
         }
     }

@@ -115,6 +115,12 @@
 			<version>3.7</version>
 		</dependency>
 
+		<dependency>
+			<groupId>org.graylog2</groupId>
+			<artifactId>gelfclient</artifactId>
+			<version>1.4.3</version>
+		</dependency>
+
 	</dependencies>
 
 	<build>

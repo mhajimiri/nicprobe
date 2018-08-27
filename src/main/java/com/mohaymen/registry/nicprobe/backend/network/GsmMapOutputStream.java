@@ -89,10 +89,6 @@ public class GsmMapOutputStream extends LogOutputStream {
                         reqAndResp.add(temp);
                         reqAndResp.add(request);
                         calcResponseTime.GsmMapCalculate(reqAndResp);
-//                        ResponseInfoModel responseInfoModel=new ResponseInfoModel();
-//                        responseInfoModel.setId(request.getId());
-//                        responseInfoModel.setType(1);
-//                        send(responseInfoModel);
                     }else {
                         gsmMapRepository.save(request);
                     }

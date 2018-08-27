@@ -1,5 +1,7 @@
 package com.mohaymen.registry.nicprobe.backend.network;
 
+import com.mohaymen.registry.nicprobe.backend.model.FileNames;
+import com.mohaymen.registry.nicprobe.backend.model.FileStatus;
 import org.apache.commons.exec.*;
 import org.apache.commons.io.monitor.FileAlterationListener;
 import org.apache.commons.io.monitor.FileAlterationListenerAdaptor;
@@ -42,13 +44,16 @@ public class MyGsmMapHandler implements Runnable {
                         tsharkGsmMap.addArgument(file.getAbsolutePath());
                         try {
                             gsmMapShell.execute(tsharkGsmMap);
-//                            if(!file.getName().contains("checked")){
-//                                if(file.exists()) {
-//                                    FileUtils.moveFile(file, new File("/home/zamani/dump/checked/" +
-//                                            file.getName().replace("pcap", "checked")));
-//                                }
-//                            }
-
+                            if(FileNames.getList().containsKey(file.getName())){
+                                FileStatus fileStatus=FileNames.getList().get(file.getName());
+                                fileStatus.setA(true);
+                                FileNames.getList().put(file.getName(),fileStatus);
+                            }else {
+                                FileStatus fileStatus=new FileStatus();
+                                fileStatus.setId(file.getName());
+                                fileStatus.setA(true);
+                                FileNames.getList().put(file.getName(),fileStatus);
+                            }
                         } catch (IOException e) {
                             e.printStackTrace();
                         }

@@ -90,9 +90,6 @@ public class DiameterOutputStream extends LogOutputStream {
                         reqAndResp.add(temp);
                         reqAndResp.add(request);
                         calcResponseTime.diameterCalculate(reqAndResp);
-//                        ResponseInfoModel responseInfoModel=new ResponseInfoModel();
-//                        responseInfoModel.setType(2);
-//                        send(responseInfoModel);
                     }else {
                         diameterRepository.save(request);
                     }

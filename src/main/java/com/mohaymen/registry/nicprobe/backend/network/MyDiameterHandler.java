@@ -1,7 +1,5 @@
 package com.mohaymen.registry.nicprobe.backend.network;
 
-import com.mohaymen.registry.nicprobe.backend.model.FileNames;
-import com.mohaymen.registry.nicprobe.backend.model.FileStatus;
 import org.apache.commons.exec.CommandLine;
 import org.apache.commons.exec.DefaultExecutor;
 import org.apache.commons.exec.Executor;
@@ -46,16 +44,6 @@ public class MyDiameterHandler {
                         tsharkDiameter.addArgument(file.getAbsolutePath());
                         try {
                             diameterShell.execute(tsharkDiameter);
-                            if(FileNames.getList().containsKey(file.getName())){
-                                FileStatus fileStatus=FileNames.getList().get(file.getName());
-                                fileStatus.setB(true);
-                                FileNames.getList().put(file.getName(),fileStatus);
-                            }else {
-                                FileStatus fileStatus=new FileStatus();
-                                fileStatus.setId(file.getName());
-                                fileStatus.setB(true);
-                                FileNames.getList().put(file.getName(),fileStatus);
-                            }
                         } catch (IOException e) {
                             e.printStackTrace();
                         }
